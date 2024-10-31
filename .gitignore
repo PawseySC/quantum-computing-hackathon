@@ -3,4 +3,5 @@ lessons/.ipynb_checkpoints/
 lessons/*-output*/
 .DS_Store
 lessons/.DS_Store
+lessons/__pycache__/
 
