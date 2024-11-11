@@ -9,8 +9,10 @@ matplotlib.logging.getLogger('matplotlib.font_manager').disabled = True
 from ipywidgets import interact, interactive, fixed, interact_manual
 import ipywidgets as widgets
 from IPython.display import display, Markdown, Latex
-
+# import plotly 
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from scipy.linalg import expm
 
 # penny lane quantum computing library
 import pennylane as qml
@@ -243,3 +245,265 @@ def MakeAndRunCircuit(num_measurements :int = 100,
         results = circuit(qubits, hqubits, cnotqubits, shots=num_measurements)
         # here plot the results
         PlotPennyLaneHisto(results, f'Measurment results from {num_measurements} measurements')
+
+def _maketarget(rows, cols, irand):
+    if (rows < 2): rows = 2
+    if (cols < 2): cols = 2
+    x_target, y_target = rows/2, cols/2
+    if (irand):
+        x_target, y_target = np.random.randint(low = 1, high = 5, size = 2)
+
+    x = [j + 1 for i in range(rows) for j in range(cols)]
+    y = [i + 1 for i in range(rows) for j in range(cols)]
+    return rows, cols, x_target, y_target, x, y
+
+def GroversGrid(rows: int = 4, cols : int = 4, irand : bool = True, 
+               msize = 50 ):
+    '''
+    @brief generate a grid and have people try to find the target
+    '''
+    display(Markdown('# Find the target!'))
+    display(Markdown('Click on the circles and see if you can find the hidden target. If the circle turns Green, you have found it!'))
+    display(Markdown('To restart, simply `shift+enter` on the cell.'))
+    colorset = {'Hit': '#bae2be', 'Miss': 'White', 'Off': '#a3a7e4'}
+    bbox = dict(boxstyle="round", fc="white", ec='black')
+    def update_point(trace, points, selector):
+        c = list(scatter.marker.color)
+        s = list(scatter.marker.size)
+        for i in points.point_inds:
+            if x[i] == x_target and y[i] == y_target:  
+                c[i] = colorset['Hit'] 
+            else:
+                c[i] = colorset['Miss']
+            s[i] = 50
+        with figwidget.batch_update():
+            scatter.marker.color = c
+            scatter.marker.size = s    
+            ntries = list(scatter.marker.color).count(colorset['Miss'])
+            if colorset['Hit'] in c:
+                figwidget.update_layout(title = f"\nSuccess! In {ntries+1} tries.")
+            else:
+                figwidget.update_layout(title = f"\nNumber of misses = {ntries+1} of {len(c)}.")
+
+    # initialize the target state
+    rows, cols, x_target, y_target, x, y = _maketarget(rows, cols, irand)
+
+    # create interative plotly figure
+    figwidget = go.FigureWidget([go.Scatter(x=x, y=y, mode='markers')])
+    scatter = figwidget.data[0]
+    colors = [colorset['Off']] * (rows * cols)
+    scatter.marker.color = colors
+    scatter.marker.size = [msize] * (rows * cols)
+    figwidget.layout.hovermode = 'closest'
+    # update the layout 
+    figwidget.update_layout(
+        width=(2.05*msize)*(rows+1),  
+        height=(2.05*msize)*(cols+1),
+        xaxis=dict(
+            scaleanchor='y',
+            scaleratio=1,
+            range=[0, cols + 1],
+            showticklabels=False,  
+            tickvals=[],          
+        ),
+        yaxis=dict(
+            range=[0, rows + 1],
+            showticklabels=False,  
+            tickvals=[],           
+        ),
+        plot_bgcolor='white',  
+        paper_bgcolor='white',
+        title=f"Where's the hidden target?",
+    )
+    figwidget.update_traces(marker=dict(
+                              line=dict(width=2,
+                                        color='DarkSlateGrey')),
+                            )
+    scatter.on_click(update_point)
+    return figwidget
+
+def GroverSearch(rows: int = 4, cols : int = 4, irand : bool = True, 
+                 figwidth : int = 500, figheight : int = 750, 
+                 jitter_strength : float = 0.0015):
+    '''
+    @brief show a grover's search where data is displayed in a grid and try to show how size of target increased by grovers search
+
+    '''
+    display(Markdown('# Make the target bigger!'))
+    display(Markdown('By adjusting the slider you can see how the phase difference between the desired target and all the rest can change the system'))
+    display(Markdown('You should be able to find the point at which the maximum probability (and area covered by the target) is much larger than the rest of the data points. Try seeing where you get the biggest target circle.'))
+    display(Markdown('You should see in the total probability of finding the target that the probability depends on time when you measure the quantum circuit as well. So there is both a ideal phase and time to maximise the desired outcome.'))
+    display(Markdown('To restart, simply `shift+enter` on the cell.'))
+
+    colorset = {'Hit': '#bae2be', 'Miss': 'DarkOrange', 'Off': '#a3a7e4'}
+    rows, cols, x_target, y_target, x, y = _maketarget(rows, cols, irand)
+    n = rows * cols     
+    target = n/2+1
+    if irand: target = np.random.randint(low = 0, high = n)
+    
+    def prob(phase, ts, target, n):
+        G = np.ones((n, n)) - np.eye(n)
+        psi = (1/np.sqrt(n)) * np.ones(n, dtype=np.complex128)
+        psi[0] *= np.exp(1j * phase)
+        return [np.abs((expm(-1j * t * G) @ psi)[target])**2 for t in ts]
+    
+    def target_term(phase, t, n):
+        return np.exp(1j * (n-1) * t)*[(1/np.sqrt(n))*np.exp(-1j * phase)]
+    
+    def non_target_term(phase, t, n):
+        return (1/np.sqrt(n)) * (n-1) * np.exp(1j * (n-1) * t)*(np.exp(-1j * n * t) - 1)*(1/(n))*np.exp(-1j * phase)
+    
+    ts = np.arange(0, 1, 0.01)
+    phis = np.linspace(0, 2 * np.pi, 100)  
+    
+    fig = make_subplots(
+        rows=2, cols=2, shared_xaxes='columns',
+        subplot_titles=("Probability of Measuring the Target", "Relative Probability", "Amplitude Contributions", None),
+        specs=[
+            [{"type": "xy"}, {"type": "xy", "rowspan": 2}], 
+            [{"type": "xy"}, None]                           
+        ],
+    )
+    
+    
+    phi = 0
+    
+    colors = [colorset['Miss']] * n
+    colors[target] = colorset['Hit']  
+    
+    marker_sizes = n * [int(500 / n)]
+        
+    y_prob = prob(0, ts, 0, n)
+    y_prob_jittered = y_prob + np.random.normal(0, jitter_strength, size=len(y_prob))
+    
+    y_target_term = np.abs(target_term(0, ts, n)) * np.real(target_term(0, ts, n))
+    y_target_term_jittered = y_target_term + np.random.normal(0, jitter_strength, size=len(y_target_term))
+    
+    y_non_target_term = np.abs(non_target_term(0, ts, n)) * np.imag(non_target_term(0, ts, n))
+    y_non_target_term_jittered = y_non_target_term + np.random.normal(0, jitter_strength, size=len(y_non_target_term))
+    
+    trace1 = go.Scatter(
+        x=ts,
+        y=y_prob_jittered,
+        mode='lines',
+        line=dict(color=colorset['Hit'], width=4, dash='solid'),
+        name="Probability to Measure the Target",
+        line_shape='spline'
+    )
+    
+    trace2 = go.Scatter(
+        x=ts,
+        y=y_target_term_jittered,
+        mode='lines',
+        line=dict(color=colorset['Hit'], width=4, dash='solid'),
+        name="Amplitude from the Target",
+            line_shape='spline'
+    )
+    
+    trace3 = go.Scatter(
+        x=ts,
+        y=y_non_target_term_jittered,
+        mode='lines',
+        line=dict(color=colorset['Miss'], width=4, dash='dash'),
+        name="Amplitude From Other States",
+        line_shape='spline'
+    )
+    
+    trace4 = go.Scatter(
+        x=x, y=y, mode='markers',
+        name = "Relative Probability", 
+        marker=dict(size=marker_sizes, color=colors)
+    )
+    
+    fig.add_trace(trace1, row=1, col=1)
+    fig.add_trace(trace2, row=2, col=1)
+    fig.add_trace(trace3, row=2, col=1)
+    fig.add_trace(trace4, row=1, col=2)
+    
+    steps = []
+    for phi in phis:
+        y_prob = prob(phi, ts, 0, n)
+        y_prob_jittered = y_prob + np.random.normal(0, jitter_strength, size=len(y_prob))
+    
+        y_target_term = np.abs(target_term(phi, ts, n)) * np.real(target_term(phi, ts, n))
+        y_target_term_jittered = y_target_term + np.random.normal(0, jitter_strength, size=len(y_target_term))
+    
+        y_non_target_term = np.abs(non_target_term(phi, ts, n)) * np.imag(non_target_term(phi, ts, n))
+        y_non_target_term_jittered = y_non_target_term + np.random.normal(0, jitter_strength, size=len(y_non_target_term))
+    
+        marker_sizes = np.empty(n, dtype=int)
+        marker_sizes[:] = int(500 * prob(phi, [ts[np.argmax(prob(phi, ts, 1, n))]], 1, n)[0])
+        marker_sizes[target] = int(500 * prob(phi, [ts[np.argmax(prob(phi, ts, 0, n))]], 0, n)[0])
+        step = dict(
+            method="update",
+            args=[
+                {
+                    "y": [
+                        y_prob_jittered,
+                        y_target_term_jittered,
+                        y_non_target_term_jittered,
+                        y
+                    ],
+                    "marker": [
+                        None,
+                        None,
+                        None,
+                        {"size": marker_sizes, "color": colors, "linecolor": 'DarkSlateGrey', "linewidth": 2}
+                    ]
+                }
+            ],
+            label=f"{np.degrees(phi):.0f}°"  
+        )
+        steps.append(step)
+    
+    sliders = [dict(
+        active=0,  
+        pad={"t": 50},
+        steps=steps,
+        currentvalue={"prefix": "Phase angle between target and non-target states: "}
+    )]
+    
+    fig.update_yaxes(range=[0, 2.0/np.sqrt(n)], row=1, col=1)
+    fig.update_yaxes(range=[-1.2/np.sqrt(n), 1.2/np.sqrt(n)], row=2, col=1)
+    
+    
+    fig.update_xaxes(showticklabels=False, row=1, col=2)
+    fig.update_yaxes(showticklabels=False, row=1, col=2)
+    
+    #fig.update_xaxes(title_text='time', row=2, col=1)
+    
+    
+    fig.update_layout(
+        sliders=sliders,
+        width=2 * figwidth, height=figheight,
+        showlegend=False,   
+        margin=dict(t=50),   
+        font=dict(family="Comic Sans MS, sans-serif", size=16, color="black"),
+        plot_bgcolor='white',
+        xaxis=dict(showgrid=False, zeroline=True, zerolinewidth=2, zerolinecolor='Black'),
+        yaxis=dict(showgrid=True, zeroline=True, zerolinewidth=2, zerolinecolor='Black'),
+        xaxis3=dict(showgrid=False, zeroline=True, zerolinewidth=2, zerolinecolor='Black'),
+        yaxis3=dict(showgrid=True, zeroline=True, zerolinewidth=2, zerolinecolor='Black'),
+    )
+    fig.update_traces(marker=dict(line=dict(width=2, color='DarkSlateGrey')),)
+    
+    fig.update_xaxes(showgrid=False, row=1, col=1)
+    fig.update_yaxes(showgrid=False, row=1, col=1)
+    
+    xaxis_domain = fig.layout.xaxis2.domain
+    yaxis_domain = fig.layout.yaxis2.domain
+    
+    fig.add_shape(
+        type="rect",
+        xref="paper",
+        yref="paper",
+        x0=xaxis_domain[0],
+        y0=yaxis_domain[0],
+        x1=xaxis_domain[1],
+        y1=yaxis_domain[1],
+        fillcolor="white",
+        #line=dict(width=0),
+        layer="below"
+    )
+    return fig
+
