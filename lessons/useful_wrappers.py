@@ -21,7 +21,10 @@ qml.drawer.use_style('sketch')
 import qmuvi
 from qiskit import QuantumCircuit
 
+# set some paramters for plotting 
 hfont = {'fontname':'Helvetica'}
+plt.ioff() # let the interactive plot take over matplotlib interaction
+plt.tight_layout()
 
 def PlotPennyLaneHisto(results, plottitle : str = ''):
     with plt.xkcd():
@@ -29,8 +32,6 @@ def PlotPennyLaneHisto(results, plottitle : str = ''):
     # https://xkcd.com/418/
 
         # fig, ax = plt.subplots()
-        # plt.tight_layout()
-        plt.ioff()
         fig = plt.figure(figsize=(7.5,7.5))
         ax = fig.add_axes((0.2, 0.2, 0.5, 0.5))
         ax.spines[['top', 'right']].set_visible(False)
@@ -39,9 +40,9 @@ def PlotPennyLaneHisto(results, plottitle : str = ''):
         yvals = [results[k] for k in results.keys()]
         ax.bar(labels, yvals, facecolor='DarkOrange', edgecolor='Gold', linewidth=4)
         ax.tick_params(axis='x', labelrotation=80)
-        ax.set_xlabel('Qubit States', **hfont)
-        ax.set_ylabel('Count', **hfont)
-        ax.set_title(plottitle, **hfont)
+        # ax.set_xlabel('Qubit States', **hfont)
+        # ax.set_ylabel('Count', **hfont)
+        # ax.set_title(plottitle, **hfont)
         fig.show()
 
 def _setupqubits(num_qubits, add_H, hqubits, add_CNOT, cnotqubits):
@@ -119,8 +120,6 @@ def PlotSystemRequirements(num_qubits : int = 2, num_gates : int = 1, num_measur
         display(Markdown(f'* Operations: This would require ${np.exp(flops):.4f}$ Floating Point Operations, taking roughly {time:.4f} seconds on a laptop'))
         maxlognqubit=9
         maxgates = 10
-        plt.ioff()
-        plt.tight_layout()
         x = 2**np.arange(maxlognqubit)
         fig, (ax1, ax2) = plt.subplots(2,1, figsize=(10,12))
         plt.subplots_adjust(left=0.4, right=0.95, top=0.9, bottom=0.1, hspace=0.4)
@@ -200,7 +199,6 @@ def MakeCircuit(num_qubits : int = 1,
 
     _reportsim(num_qubits, num_gates, report_system_requirements)
     # plotting circuit
-    plt.ioff()
     fig, ax = qml.draw_mpl(circuit, show_all_wires=True)(qubits, hqubits, cnotqubits)
     fig.show()
     
@@ -233,7 +231,6 @@ def MakeAndRunCircuit(num_measurements :int = 100,
 
     _reportsim(num_qubits, num_gates, report_system_requirements)
     # plotting circuit
-    plt.ioff()
     fig, ax = qml.draw_mpl(circuit, show_all_wires=True)(qubits, hqubits, cnotqubits)
     fig.show()
     if (num_measurements > max_nshots) or (num_qubits > max_nqubits):
