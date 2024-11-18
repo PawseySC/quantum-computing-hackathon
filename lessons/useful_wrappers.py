@@ -79,7 +79,7 @@ def _reportsim(num_qubits, num_gates, ireport : bool):
     if ireport:
         mem = 8*2**(2*num_qubits-30)*(num_gates+1)
         flops = num_gates * (4*num_qubits-1)*(2*num_qubits)**2.0+(4*num_qubits-1)*(2*num_qubits)
-        display(Markdown('# Simulating Circuit'))
+        display(Markdown('## Simulating Circuit'))
         display(Markdown(f'You have asked to simulate a circuit with {num_qubits} and {num_gates}'))
         display(Markdown(f'* Memory: This would require {mem:.4f} GB of memory, or roughly {mem/8:.4f} laptops'))
         display(Markdown(f'* Operations: This would require {flops:.4e} Floating point operations, or roughly {flops/5e12/128*0.5:.4e} seconds on a laptop'))
@@ -116,7 +116,7 @@ def PlotSystemRequirements(num_qubits : int = 2, num_gates : int = 1, num_measur
         }
         time = np.exp(flops)/flopslist['1 second on a laptop']
 
-        display(Markdown('# Simulating Circuit'))
+        display(Markdown('## Simulating Circuit'))
         display(Markdown(f'You have asked to simulate a circuit with {num_qubits} and {num_gates} running {num_measurements} measurements'))
         display(Markdown(f'* Memory: This would require {2**(mem-30):.4f} GB of memory, or roughly {2**(mem-30)/8:.4f} laptops'))
         display(Markdown(f'* Operations: This would require ${np.exp(flops):.4f}$ Floating Point Operations, taking roughly {time:.4f} seconds on a laptop'))
@@ -236,7 +236,7 @@ def MakeAndRunCircuit(num_measurements :int = 100,
     fig, ax = qml.draw_mpl(circuit, show_all_wires=True)(qubits, hqubits, cnotqubits)
     fig.show()
     if (num_measurements > max_nshots) or (num_qubits > max_nqubits):
-        display(Markdown('# WARNING'))
+        display(Markdown('## WARNING'))
         display(Markdown('You have asked to simulate either too many measurements (shots) or too many qubits. ***NOT SIMULATING***'))
         display(Markdown(f'* *Number of measurements should be $<{max_nshots}$ and requested:* {num_measurements}'))
         display(Markdown(f'* *Number of qubits should be $<{max_nqubits}$ and requested:* {num_qubits}. This would require {2**(num_qubits-30)} GB of memory and take a long time to simulate'))
@@ -262,7 +262,7 @@ def GroversGrid(rows: int = 4, cols : int = 4, irand : bool = True,
     '''
     @brief generate a grid and have people try to find the target
     '''
-    display(Markdown('# Find the target!'))
+    display(Markdown('## Find the target!'))
     display(Markdown('Click on the circles and see if you can find the hidden target. If the circle turns Green, you have found it!'))
     display(Markdown('To restart, simply `shift+enter` on the cell.'))
     colorset = {'Hit': '#bae2be', 'Miss': 'White', 'Off': '#a3a7e4'}
@@ -329,7 +329,7 @@ def GroverSearch(rows: int = 4, cols : int = 4, irand : bool = True,
     @brief show a grover's search where data is displayed in a grid and try to show how size of target increased by grovers search
 
     '''
-    display(Markdown('# Make the target bigger!'))
+    display(Markdown('## Make the target bigger!'))
     display(Markdown('By adjusting the slider you can see how the phase difference between the desired target and all the rest can change the system'))
     display(Markdown('You should be able to find the point at which the maximum probability (and area covered by the target) is much larger than the rest of the data points. Try seeing where you get the biggest target circle.'))
     display(Markdown('You should see in the total probability of finding the target that the probability depends on time when you measure the quantum circuit as well. So there is both a ideal phase and time to maximise the desired outcome.'))
