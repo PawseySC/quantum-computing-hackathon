@@ -74,11 +74,48 @@ def _setupqubits(num_qubits, add_H, hqubits, add_CNOT, cnotqubits):
 
     return qubits, hqubits, cnotqubits 
 
+def memcalc(
+    ix , iy, 
+    rep : str = 'state',
+    add_gates : bool = False, 
+    float_size : float = 8.0, 
+):
+    x = np.float64(ix)
+    y = np.float64(iy)
+    if rep == 'state':
+        fac = 1.0
+    elif rep == 'density':
+        fac = 2.0
+    else:
+        fac = 1.0
+    # mem is float size and memory to store vector/density matrix
+    mem = np.log(2.0*float_size)+fac*x*np.log(2.0)
+    # and if wanted to store gates then add more to memory 
+    if add_gates: 
+        mem += np.log(y) + 2.0*x*np.log(2.0)
+    return mem
+
+def flopcalc(
+    ix, iy, iz, 
+    rep : str = 'state', 
+):
+    x = np.float64(ix)
+    y = np.float64(iy)
+    z = np.float64(iz)
+    if rep == 'state':
+        flop = np.log(y * (2**(x+1)-1)*(2**x))+np.log(z)
+    elif rep == 'density':
+        flop = np.log(y * (2**(2*x)-1)*(2**(2*x)))+np.log(z)
+    else:
+        flop = np.log(y * (2**(x+1)-1)*(2**x))+np.log(z)
+    return flop 
+
+
 def _reportsim(num_qubits, num_gates, ireport : bool):
 
     if ireport:
-        mem = 8*2**(2*num_qubits-30)*(num_gates+1)
-        flops = num_gates * (4*num_qubits-1)*(2*num_qubits)**2.0+(4*num_qubits-1)*(2*num_qubits)
+        mem = np.exp(memcalc(num_qubits, num_gates)-3.0*np.log(1024))
+        flops = np.exp(flopcalc(num_qubits, num_gates, 1))
         display(Markdown('## Simulating Circuit'))
         display(Markdown(f'You have asked to simulate a circuit with {num_qubits} and {num_gates}'))
         display(Markdown(f'* Memory: This would require {mem:.4f} GB of memory, or roughly {mem/8:.4f} laptops'))
@@ -89,16 +126,12 @@ def PlotSystemRequirements(num_qubits : int = 2, num_gates : int = 1, num_measur
     # Based on "Stove Ownership" from XKCD by Randall Munroe
     # https://xkcd.com/418/
         
-        def memcalc(x,y):
-            return np.log(8.0)+2*x*np.log(2.0)+np.log(y)
-        def flopcalc(x,y,z):
-            return np.log(y * (4*x-1)*(2*x)**2.0+(4*x-1)*(2*x))+np.log(z)
         mem = memcalc(num_qubits, num_gates)
         flops = flopcalc(num_qubits, num_gates, num_measurements)
         memlist = {
             'very small': np.log(0.01)+30.0*np.log(2),
-            'Laptop': np.log(8)+30.0*np.log(2), 
-            '100 laptops':np.log(800)+30.0*np.log(2),
+            'Laptop': np.log(8)+3.0*np.log(1024), 
+            '100 laptops':np.log(800)+3.0*np.log(1024),
             'A Supercomputer':np.log(1e6)+30.0*np.log(2),
             'All the storage on Earth':np.log(200e12)+30.0*np.log(2),
             'A few hundred Earths': np.log(1e16)+30.0*np.log(2),
@@ -118,7 +151,7 @@ def PlotSystemRequirements(num_qubits : int = 2, num_gates : int = 1, num_measur
 
         display(Markdown('## Simulating Circuit'))
         display(Markdown(f'You have asked to simulate a circuit with {num_qubits} and {num_gates} running {num_measurements} measurements'))
-        display(Markdown(f'* Memory: This would require {2**(mem-30):.4f} GB of memory, or roughly {2**(mem-30)/8:.4f} laptops'))
+        display(Markdown(f'* Memory: This would require {np.exp(mem-3.0*np.log(1024)):.4f} GB of memory, or roughly {np.exp(mem-memlist["Laptop"]):.4f} laptops'))
         display(Markdown(f'* Operations: This would require ${np.exp(flops):.4f}$ Floating Point Operations, taking roughly {time:.4f} seconds on a laptop'))
         maxlognqubit=9
         maxgates = 10
