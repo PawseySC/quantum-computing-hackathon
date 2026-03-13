@@ -2,17 +2,17 @@
 
 This repo provides material to introduce Quantum Computing to students in secondary school. The lessons are laid out in the `lessons/` directory in the form of interactive, digital (jupyter) notebooks.  
 
-For a tutorial on what a Jupyter notebook looks like and how to use it, have a look at (this)[https://realpython.com/jupyter-notebook-introduction/].
+For a tutorial on what a Jupyter notebook looks like and how to use it, have a look at [this](https://realpython.com/jupyter-notebook-introduction/).
 
 ## Setting up the notebooks
 
-The digital notebooks make use of quite a variety of software behind the scenes. We have setup executables (scripts) to run that will install all the relevant software packages save Python. To install Python, we suggest looking at this (material)[https://realpython.com/installing-python/].
+The digital notebooks make use of quite a variety of software behind the scenes. We have setup executables (scripts) to run that will install all the relevant software packages save Python. To install Python, we suggest looking at this [material](https://realpython.com/installing-python/).
 
 There are several ways of downloading this hackathon. 
 
 ### Simple
 
-The first step is download the repository and unpack it. The repository can be downloaded from (here)[https://github.com/PawseySC/quantum-computing-hackathon/archive/refs/heads/main.zip]. Once you unzip it, you should have a folder/directory called `quantum-computing-hackathon`. In this folder you see a scripts directory. 
+The first step is download the repository and unpack it. The repository can be downloaded from [here](https://github.com/PawseySC/quantum-computing-hackathon/archive/refs/heads/main.zip). Once you unzip it, you should have a folder/directory called `quantum-computing-hackathon`. In this folder you see a scripts directory. 
 
 #### For Windows
 
