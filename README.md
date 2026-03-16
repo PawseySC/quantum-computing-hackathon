@@ -72,11 +72,11 @@ The notebooks are in `lessons/` folder and consist of
 
 These interactive digital (jupyter) notebooks are used via your browser (as seen in below)
 
-<img src="figs/jupyter_example.png" style="float: right; margin: 0 0 15px 15px; width: 20%;" alt="Logo">
+<img src="figs/jupyter_example.png" style="float: right; margin: 0 0 15px 15px; width: 80%;" alt="Jupyter Notbook">
 
 You should see each notebook as a `.ipynb` file. When you launch a notebook it should open a new tab in the browser (as seen below)
 
-<img src="figs/jupyter_multitab_example.png" style="float: right; margin: 0 0 15px 15px; width: 20%;" alt="Logo">
+<img src="figs/jupyter_multi_tab_example.png" style="float: right; margin: 0 0 15px 15px; width: 80%;" alt="Multi tabs">
 
 For a tutorial on what a Jupyter notebook looks like and how to use it, have a look at [this](https://realpython.com/jupyter-notebook-introduction/).
 
