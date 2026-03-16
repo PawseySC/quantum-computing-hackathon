@@ -1,5 +1,16 @@
 #!/bin/bash
+
+# set the pipefail option to ensure that if any command in a pipeline fails, the entire pipeline will be considered to have failed. 
 set -euo pipefail
+
+# determine the directory where scripts are located
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# Report what script will do 
+echo "This script will "
+echo "\\t * create a Python virtual environment"
+echo "\tt * install the required packages from requirements.txt"
+echo "\tt * launch Jupyter Notebook on port 8888."
 
 # --- 1. Determine where Python 3 is located ---
 python_exec=$(command -v python3)
@@ -19,18 +30,18 @@ pip_exec="$python_exec -m pip"
 echo "Found pip at: $pip_exec"
 
 # --- 3. Create Virtual Environment and Install Packages ---
-venv_dir="./venv"
+VENV_DIR=${SCRIPT_DIR}"/../venv"
 
 # Check if venv directory already exists
-if [ -d "$venv_dir" ]; then
+if [ -d "$VENV_DIR" ]; then
     read -p "Virtual environment 'venv' already exists. Do you want to delete it and recreate it? (y/n) " choice
     choice=$(echo $choice | tr 'a-z' 'A-Z')
     
     if [ "$choice" = "Y" ] || [ "$choice" = "YES" ]; then
         echo "Deleting existing virtual environment..."
-        rm -rf "$venv_dir"
+        rm -rf "$VENV_DIR"
         echo "Creating new virtual environment..."
-        $python_exec -m venv "$venv_dir" || { echo "Failed to create virtual environment"; exit 1; }
+        $python_exec -m venv "$VENV_DIR" || { echo "Failed to create virtual environment"; exit 1; }
     else
         echo "Keeping existing virtual environment."
     fi
@@ -38,7 +49,7 @@ fi
 
 
 # Activate the virtual environment
-source "$venv_dir"/bin/activate > /dev/null 2>&1
+source "$VENV_DIR"/bin/activate > /dev/null 2>&1
 
 # Now, pip is available in the activated environment
 echo "Creating virtual environment and installing packages..."
@@ -53,7 +64,7 @@ if [ $? -ne 0 ]; then
     echo "\\t - Compilers or build tools required for some packages"
     # Deactivate and clean up
     deactivate > /dev/null 2>&1
-    rm -rf "$venv_dir" || true
+    rm -rf "$VENV_DIR" || true
     exit 1
 fi
 
@@ -63,12 +74,12 @@ echo "Packages installed successfully."
 echo "Starting Jupyter Notebook..."
 
 # Add this line to ensure Jupyter works with modern browsers
-jupyter nbconvert --to widget_link --output jupyter_notebook_config.json --config
+# jupyter nbconvert --to widget_link --output jupyter_notebook_config.json --config
 
-jupyter notebook --port=8888 &
+jupyter notebook lessons/ --port=8888 &
 
 # Optional: Wait for Jupyter to finish (useful if you want to run commands after)
-# Uncomment the next line if you need this
-# wait
+wait
 
+# deactive the python environment after Jupyter is closed
 deactivate > /dev/null 2>&1

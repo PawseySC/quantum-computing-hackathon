@@ -30,7 +30,7 @@ if not exist "%pip_path%.exe" (
 echo Found pip at: %pip_path%
 
 REM --- 3. Create Virtual Environment and Install Packages ---
-set "venv_dir=venv"
+set "venv_dir=%~dp0\venv"
 if not exist "%venv_dir%" md "%venv_dir%"
 
 REM Activate the virtual environment in this script's context
@@ -49,7 +49,7 @@ echo Packages installed successfully.
 
 REM --- 4. Launch Jupyter Notebook ---
 echo Starting Jupyter Notebook...
-jupyter notebook --port=8888
+jupyter notebook "lessons\" --port=8888
 
 :end
 pause
