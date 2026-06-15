@@ -69,6 +69,8 @@ The notebooks are in `lessons/` folder and consist of
   - simple quantum operations 
 * `2-Intro_Quantum_Algorithms`: a interactive lesson that covers
   - quantum computing algorithms 
+* `3-Intro_Quantum_Sandbox`: a interactive lesson that covers
+  - simple sandbox for trying out new circuits 
 
 These interactive digital (jupyter) notebooks are used via your browser (as seen in below)
 
